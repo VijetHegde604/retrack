@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 
+import cv2
 import numpy as np
 from ultralytics import YOLO
 
@@ -15,7 +16,7 @@ class Detection:
 
 
 class Detector:
-    """Object detector backed by a YOLO model."""
+    """Object detector backed by a YOLO segmentation model."""
 
     def __init__(
         self,
@@ -46,12 +47,25 @@ class Detector:
 
             for i in range(len(boxes)):
                 x1, y1, x2, y2 = boxes.xyxy[i].tolist()
+
                 mask = None
 
-                # Segmentation models provide one mask for each box. Detection-only
-                # models leave ``result.masks`` unset, so they still work normally.
-                if masks is not None and i < len(masks.data):
-                    mask = masks.data[i].cpu().numpy()
+                if masks is not None and i < len(masks.xy):
+                    polygon = masks.xy[i]
+
+                    mask = np.zeros(
+                        frame.shape[:2],
+                        dtype=np.uint8,
+                    )
+
+                    if polygon is not None and len(polygon) >= 3:
+                        cv2.fillPoly(
+                            mask,
+                            [polygon.astype(np.int32)],
+                            1,
+                        )
+
+                    mask = mask.astype(bool)
 
                 detections.append(
                     Detection(

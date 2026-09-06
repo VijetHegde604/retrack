@@ -5,7 +5,6 @@ import numpy as np
 
 from retrack.detector import Detection
 
-
 # High-contrast BGR colours. Keeping this palette fixed makes an object's
 # visualization consistent between frames while still distinguishing instances.
 MASK_COLORS: tuple[tuple[int, int, int], ...] = (
@@ -79,16 +78,12 @@ def _frame_mask(
     width: int,
     height: int,
 ) -> np.ndarray | None:
-    """Convert a model mask to a boolean mask aligned with the video frame."""
-
     if mask is None:
         return None
 
-    mask = np.squeeze(mask)
-    if mask.ndim != 2:
-        return None
-
     if mask.shape != (height, width):
-        mask = cv2.resize(mask, (width, height), interpolation=cv2.INTER_NEAREST)
+        raise ValueError(
+            f"Mask shape {mask.shape} does not match frame shape {(height, width)}"
+        )
 
-    return mask > 0.5
+    return mask

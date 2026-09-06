@@ -18,7 +18,7 @@ class Detector:
 
     def __init__(
         self,
-        model: str = "yolo11n.pt",
+        model: str = "yolo11s.pt",
         confidence: float = 0.4,
     ) -> None:
         self.model = YOLO(model)

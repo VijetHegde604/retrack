@@ -42,15 +42,23 @@ class Detector:
                 continue
 
             boxes = result.boxes
+            masks = result.masks
 
             for i in range(len(boxes)):
                 x1, y1, x2, y2 = boxes.xyxy[i].tolist()
+                mask = None
+
+                # Segmentation models provide one mask for each box. Detection-only
+                # models leave ``result.masks`` unset, so they still work normally.
+                if masks is not None and i < len(masks.data):
+                    mask = masks.data[i].cpu().numpy()
 
                 detections.append(
                     Detection(
                         bbox=(x1, y1, x2, y2),
                         confidence=float(boxes.conf[i]),
                         class_id=int(boxes.cls[i]),
+                        mask=mask,
                     )
                 )
 

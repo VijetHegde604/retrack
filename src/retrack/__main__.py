@@ -3,6 +3,7 @@ import argparse
 import cv2
 
 from retrack.detector import Detector
+from retrack.render import draw_detections
 from retrack.video import VideoSource
 
 
@@ -20,6 +21,12 @@ def main() -> None:
         action="store_true",
         help="Use the default webcam",
     )
+    parser.add_argument(
+        "--mask-alpha",
+        type=float,
+        default=0.45,
+        help="Opacity of coloured segmentation masks, from 0 to 1 (default: 0.45)",
+    )
 
     args = parser.parse_args()
 
@@ -30,34 +37,16 @@ def main() -> None:
     else:
         parser.error("provide a video path or use --webcam")
 
+    if not 0.0 <= args.mask_alpha <= 1.0:
+        parser.error("--mask-alpha must be between 0 and 1")
+
     detector = Detector()
     video = VideoSource(source)
 
     for frame in video.frames():
         detections = detector.detect(frame)
 
-        for detection in detections:
-            x1, y1, x2, y2 = map(int, detection.bbox)
-
-            cv2.rectangle(
-                frame,
-                (x1, y1),
-                (x2, y2),
-                (0, 255, 0),
-                2,
-            )
-
-            label = f"{detection.class_id}: {detection.confidence:.2f}"
-
-            cv2.putText(
-                frame,
-                label,
-                (x1, max(y1 - 10, 0)),
-                cv2.FONT_HERSHEY_SIMPLEX,
-                0.5,
-                (0, 255, 0),
-                2,
-            )
+        draw_detections(frame, detections, mask_alpha=args.mask_alpha)
 
         cv2.imshow("ReTrack", frame)
 

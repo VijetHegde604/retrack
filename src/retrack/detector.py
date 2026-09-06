@@ -11,6 +11,7 @@ class Detection:
     bbox: tuple[float, float, float, float]
     confidence: float
     class_id: int
+    mask: np.ndarray | None = None
 
 
 class Detector:
@@ -18,7 +19,7 @@ class Detector:
 
     def __init__(
         self,
-        model: str = "yolo11s.pt",
+        model: str = "yolo11s-seg.pt",
         confidence: float = 0.4,
     ) -> None:
         self.model = YOLO(model)

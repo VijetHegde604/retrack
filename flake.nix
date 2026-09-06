@@ -24,6 +24,14 @@
             git
           ];
 
+          # Dynamically link the libraries uv/pip wheels expect
+          LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath (with pkgs; [
+            stdenv.cc.cc.lib # Provides libstdc++.so.6 for numpy/cv2
+            zlib             # Core compression library
+            glib             # Required by OpenCV
+            libGL            # Required by OpenCV
+          ]);
+
           shellHook = ''
             export UV_PROJECT_ENVIRONMENT="$PWD/.venv"
             export PYTHONPATH="$PWD/src:$PYTHONPATH"

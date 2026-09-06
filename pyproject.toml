@@ -1,0 +1,22 @@
+[project]
+name = "retrack"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "VijetHegde604", email = "vijethegde604@gmail.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "numpy>=2.5.2",
+    "opencv-python>=5.0.0.93",
+    "scipy>=1.18.1",
+    "ultralytics>=8.4.142",
+]
+
+[project.scripts]
+retrack = "retrack.__main__:main"
+
+[build-system]
+requires = ["uv_build>=0.12.5,<0.13.0"]
+build-backend = "uv_build"

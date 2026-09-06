@@ -30,6 +30,26 @@
             zlib             # Core compression library
             glib             # Required by OpenCV
             libGL            # Required by OpenCV
+
+          # X11 & Display dependencies for OpenCV UI/Webcam rendering
+            libxcb
+            libX11
+            libxext
+            libxrender
+            libglvnd
+
+          # Qt "xcb" plugin dependencies
+            libxkbcommon
+            xorg.xcbutilwm
+            xorg.xcbutilimage
+            xorg.xcbutilkeysyms
+            xorg.xcbutilrenderutil
+            xorg.libSM
+            xorg.libICE
+
+          # Font rendering (required by Qt)
+            fontconfig
+            freetype
           ]);
 
           shellHook = ''

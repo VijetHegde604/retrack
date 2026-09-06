@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 
+import cv2
 import numpy as np
 from ultralytics import YOLO
 
@@ -11,14 +12,15 @@ class Detection:
     bbox: tuple[float, float, float, float]
     confidence: float
     class_id: int
+    mask: np.ndarray | None = None
 
 
 class Detector:
-    """Object detector backed by a YOLO model."""
+    """Object detector backed by a YOLO segmentation model."""
 
     def __init__(
         self,
-        model: str = "yolo11s.pt",
+        model: str = "yolo11s-seg.pt",
         confidence: float = 0.4,
     ) -> None:
         self.model = YOLO(model)
@@ -41,15 +43,36 @@ class Detector:
                 continue
 
             boxes = result.boxes
+            masks = result.masks
 
             for i in range(len(boxes)):
                 x1, y1, x2, y2 = boxes.xyxy[i].tolist()
+
+                mask = None
+
+                if masks is not None and i < len(masks.xy):
+                    polygon = masks.xy[i]
+
+                    mask = np.zeros(
+                        frame.shape[:2],
+                        dtype=np.uint8,
+                    )
+
+                    if polygon is not None and len(polygon) >= 3:
+                        cv2.fillPoly(
+                            mask,
+                            [polygon.astype(np.int32)],
+                            1,
+                        )
+
+                    mask = mask.astype(bool)
 
                 detections.append(
                     Detection(
                         bbox=(x1, y1, x2, y2),
                         confidence=float(boxes.conf[i]),
                         class_id=int(boxes.cls[i]),
+                        mask=mask,
                     )
                 )
 

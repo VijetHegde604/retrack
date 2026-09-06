@@ -12,6 +12,7 @@ class Detection:
     bbox: tuple[float, float, float, float]
     confidence: float
     class_id: int
+    class_name: str
     mask: np.ndarray | None = None
 
 
@@ -48,6 +49,9 @@ class Detector:
             for i in range(len(boxes)):
                 x1, y1, x2, y2 = boxes.xyxy[i].tolist()
 
+                class_id = int(boxes.cls[i])
+                class_name = result.names[class_id]
+
                 mask = None
 
                 if masks is not None and i < len(masks.xy):
@@ -71,7 +75,8 @@ class Detector:
                     Detection(
                         bbox=(x1, y1, x2, y2),
                         confidence=float(boxes.conf[i]),
-                        class_id=int(boxes.cls[i]),
+                        class_id=class_id,
+                        class_name=class_name,
                         mask=mask,
                     )
                 )

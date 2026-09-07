@@ -4,7 +4,7 @@ import cv2
 from retrack.detector import Detector
 from retrack.render import draw_detections
 from retrack.video import VideoSource
-from retrack.tracker import SimpleTracker
+from retrack.bytetracker import ByteTracker
 
 
 def main() -> None:
@@ -49,7 +49,12 @@ def main() -> None:
     detector = Detector()
 
     # Create tracker
-    tracker = SimpleTracker(iou_threshold=0.3)
+    tracker = ByteTracker(
+    high_threshold=0.5,
+    low_threshold=0.1,
+    iou_threshold=0.3,
+    max_lost=30,
+)
 
     # Create video source
     video = VideoSource(source)

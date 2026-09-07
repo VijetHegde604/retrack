@@ -2,9 +2,9 @@ import argparse
 import cv2
 
 from retrack.detector import Detector
+from retrack.byte_tracker import ByteTrackTracker
 from retrack.render import draw_detections
 from retrack.video import VideoSource
-from retrack.tracker import SimpleTracker
 
 
 def main() -> None:
@@ -49,7 +49,7 @@ def main() -> None:
     detector = Detector()
 
     # Create tracker
-    tracker = SimpleTracker(iou_threshold=0.3)
+    tracker = ByteTrackTracker()
 
     # Create video source
     video = VideoSource(source)
@@ -71,14 +71,20 @@ def main() -> None:
             len(tracks),
         )
 
+        class_names = {
+            detection.class_id: detection.class_name
+            for detection in detections
+        }
+
         for track in tracks:
             print(
-                track.class_name,
+                class_names.get(track.class_id, "object"),
                 "ID:",
                 track.track_id,
             )
 
-        # 3. Draw YOLO detections
+        # 3. Draw detected objects and their segmentation masks.
+        # The tracker carries those masks forward for every active track.
         draw_detections(
             frame,
             detections,
@@ -94,7 +100,7 @@ def main() -> None:
             )
 
             label = (
-                f"{track.class_name} "
+                f"{class_names.get(track.class_id, 'object')} "
                 f"ID:{track.track_id}"
             )
 

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
 
 import numpy as np
@@ -14,6 +16,7 @@ class Track:
     confidence: float
     class_id: int
     mask: np.ndarray | None = None
+    reidentified: bool = False
 
 
 class Tracker:
@@ -22,5 +25,6 @@ class Tracker:
     def update(
         self,
         detections: list[Detection],
+        frame: np.ndarray | None = None,
     ) -> list[Track]:
         raise NotImplementedError

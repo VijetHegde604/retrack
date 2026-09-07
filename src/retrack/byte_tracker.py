@@ -28,6 +28,16 @@ class ByteTrackTracker(Tracker):
         self,
         detections: list[Detection],
     ) -> list[Track]:
+        if not detections:
+            self.tracker.update_with_detections(
+                sv.Detections(
+                    xyxy=np.empty((0, 4), dtype=np.float32),
+                    confidence=np.empty(0, dtype=np.float32),
+                    class_id=np.empty(0, dtype=np.int32),
+                )
+            )
+            return []
+
         supervision_detections = sv.Detections(
             xyxy=np.asarray(
                 [d.bbox for d in detections],
@@ -41,6 +51,7 @@ class ByteTrackTracker(Tracker):
                 [d.class_id for d in detections],
                 dtype=np.int32,
             ),
+            data={"detection_index": np.arange(len(detections))},
         )
 
         tracked = self.tracker.update_with_detections(supervision_detections)
@@ -50,8 +61,12 @@ class ByteTrackTracker(Tracker):
 
         tracks: list[Track] = []
 
-        for index, track_id in enumerate(tracked.tracker_id):
-            detection = detections[index]
+        for detection_index, track_id in zip(
+            tracked.data["detection_index"],
+            tracked.tracker_id,
+            strict=True,
+        ):
+            detection = detections[int(detection_index)]
 
             tracks.append(
                 Track(

@@ -7,18 +7,13 @@
 **ReTrack** is a high-performance, real-time Multi-Object Tracking (MOT) system designed for edge devices and CPU-constrained environments. It combines **ByteTrack's two-stage motion association** with **selective appearance Re-Identification (ReID)** and a **persistent multi-view gallery**.
 
 Traditional trackers suffer from **track fragmentation**: when an object leaves the frame, is occluded, or displaced by camera movement, its trajectory is lost and a brand-new ID is assigned upon re-entry. ReTrack restores the original tracking ID without running heavy neural networks on every frame.
-
-> 📖 **Looking for the deep-dive theory, math, benchmarks, or interview Q&A?**  
-> Check out the complete [Technical Architecture Report](REPORT.md).
-
 ---
 
 ## Demo
 
 Watch ReTrack in action on a sample indoor sequence demonstrating persistent object tracking, selective appearance ReID, and ROI-bounded mask blending:
-
 <div align="center">
-  <video src="outputs/test.mp4" width="480" controls="controls" muted="muted" loop="loop">
+  <video src="[outputs/test.mp4](https://github.com/user-attachments/assets/80ae595d-dd5b-4080-8588-2adbee7919ce)" width="480" controls="controls" muted="muted" loop="loop">
     Your browser does not support the video tag.
   </video>
   <p>

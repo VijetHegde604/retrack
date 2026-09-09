@@ -11,6 +11,7 @@ dependencies = [
     "numpy>=2.5.2",
     "opencv-python>=5.0.0.93",
     "scipy>=1.18.1",
+    "trackers>=2.6.0",
     "ultralytics>=8.4.142",
 ]
 
@@ -20,3 +21,8 @@ retrack = "retrack.__main__:main"
 [build-system]
 requires = ["uv_build>=0.12.5,<0.13.0"]
 build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+]

@@ -13,7 +13,7 @@ Traditional trackers suffer from **track fragmentation**: when an object leaves 
 
 Watch ReTrack in action on a sample indoor sequence demonstrating persistent object tracking, selective appearance ReID, and ROI-bounded mask blending:
 <div align="center">
-  <video src="[outputs/test.mp4](https://github.com/user-attachments/assets/80ae595d-dd5b-4080-8588-2adbee7919ce)" width="480" controls="controls" muted="muted" loop="loop">
+  <video src="https://github.com/user-attachments/assets/80ae595d-dd5b-4080-8588-2adbee7919ce" width="480" controls="controls" muted="muted" loop="loop">
     Your browser does not support the video tag.
   </video>
   <p>

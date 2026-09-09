@@ -13,6 +13,21 @@ Traditional trackers suffer from **track fragmentation**: when an object leaves 
 
 ---
 
+## Demo
+
+Watch ReTrack in action on a sample indoor sequence demonstrating persistent object tracking, selective appearance ReID, and ROI-bounded mask blending:
+
+<div align="center">
+  <video src="outputs/test.mp4" width="480" controls="controls" muted="muted" loop="loop">
+    Your browser does not support the video tag.
+  </video>
+  <p>
+    🎬 <strong>Sample Tracking Output:</strong> <a href="outputs/test.mp4"><code>outputs/test.mp4</code></a>
+  </p>
+</div>
+
+---
+
 ## Key Features
 
 - **Persistent Re-Identification**: Restores original tracking IDs when objects re-enter after long intervals, occlusions, or sudden camera pans.
@@ -96,6 +111,7 @@ uv run retrack --webcam
 ```bash
 uv run retrack path/to/video.mp4 --output outputs/tracked.mp4
 ```
+*(See [`outputs/test.mp4`](outputs/test.mp4) for an example annotated output.)*
 
 ### 4. Headless Mode (Servers / Benchmarking)
 ```bash
@@ -136,6 +152,8 @@ retrack/
 ├── README.md                    # Project overview & quickstart guide
 ├── pyproject.toml               # Package dependencies & CLI entrypoints
 ├── flake.nix                    # Nix devShell with system dependencies
+├── outputs/
+│   └── test.mp4                 # Sample annotated output video
 ├── src/retrack/
 │   ├── __main__.py              # CLI entrypoint & video processing loop
 │   ├── byte_tracker.py          # 3-Stage ByteTrack + ReID association engine

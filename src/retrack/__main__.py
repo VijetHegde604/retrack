@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import time
+
 import cv2
 
 from retrack.detector import Detector
@@ -106,7 +107,10 @@ def main() -> None:
 
     args = parser.parse_args()
 
+    # ---------------------------------------------------------
     # Select video source
+    # ---------------------------------------------------------
+
     if args.webcam:
         source = 0
     elif args.source:
@@ -117,7 +121,10 @@ def main() -> None:
     if not 0.0 <= args.mask_alpha <= 1.0:
         parser.error("--mask-alpha must be between 0 and 1")
 
+    # ---------------------------------------------------------
     # Initialize detector
+    # ---------------------------------------------------------
+
     detector = Detector(
         model=args.model,
         confidence=args.conf,
@@ -125,7 +132,10 @@ def main() -> None:
         imgsz=args.imgsz,
     )
 
+    # ---------------------------------------------------------
     # Initialize persistent tracker
+    # ---------------------------------------------------------
+
     tracker = ByteTrackTracker(
         track_activation_threshold=args.conf,
         high_conf_threshold=max(args.conf, 0.45),
@@ -136,50 +146,111 @@ def main() -> None:
         enable_reid=not args.no_reid,
     )
 
+    # ---------------------------------------------------------
+    # Initialize video source
+    # ---------------------------------------------------------
+
     video = VideoSource(source)
 
-    # Video writer setup if requested
+    # ---------------------------------------------------------
+    # Video writer setup
+    # ---------------------------------------------------------
+
     writer = None
+
     if args.output:
-        # Probe video properties
         cap = cv2.VideoCapture(source)
+
         fps = cap.get(cv2.CAP_PROP_FPS) or 30.0
         w = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)) or 1920
         h = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)) or 1080
+
         cap.release()
+
         fourcc = cv2.VideoWriter_fourcc(*"mp4v")
-        writer = cv2.VideoWriter(args.output, fourcc, fps, (w, h))
+
+        writer = cv2.VideoWriter(
+            args.output,
+            fourcc,
+            fps,
+            (w, h),
+        )
+
+    # ---------------------------------------------------------
+    # Create resizable preview window
+    # ---------------------------------------------------------
+
+    window_name = "ReTrack"
+
+    if not args.no_display:
+        cv2.namedWindow(
+            window_name,
+            cv2.WINDOW_NORMAL,
+        )
+
+        # Initial window size.
+        # You can resize it manually after the program starts.
+        cv2.resizeWindow(
+            window_name,
+            1280,
+            720,
+        )
+
+    # ---------------------------------------------------------
+    # Processing loop
+    # ---------------------------------------------------------
 
     frame_count = 0
     start_time = time.time()
 
     print("Starting ReTrack...")
-    print(f"Device: {detector.device} | Model: {args.model} | ReID Enabled: {not args.no_reid}")
+    print(
+        f"Device: {detector.device} | "
+        f"Model: {args.model} | "
+        f"ReID Enabled: {not args.no_reid}"
+    )
 
     try:
         for frame in video.frames():
             frame_count += 1
+
             if args.max_frames and frame_count > args.max_frames:
                 break
 
             t0 = time.time()
 
+            # -------------------------------------------------
             # 1. Detect objects
+            # -------------------------------------------------
+
             detections = detector.detect(frame)
 
-            # 2. Update persistent tracker (with frame for selective ReID)
-            tracks = tracker.update(detections, frame=frame)
+            # -------------------------------------------------
+            # 2. Update persistent tracker
+            # -------------------------------------------------
+
+            tracks = tracker.update(
+                detections,
+                frame=frame,
+            )
 
             dt = time.time() - t0
+
             fps_instant = 1.0 / max(1e-4, dt)
 
-            # 3. Class names dictionary
+            # -------------------------------------------------
+            # 3. Build class names dictionary
+            # -------------------------------------------------
+
             class_names = {
                 d.class_id: d.class_name
                 for d in detections
             }
 
-            # 4. Render tracks with persistent IDs & badges
+            # -------------------------------------------------
+            # 4. Render tracks
+            # -------------------------------------------------
+
             draw_tracks(
                 frame,
                 tracks,
@@ -187,38 +258,68 @@ def main() -> None:
                 mask_alpha=args.mask_alpha,
             )
 
+            # -------------------------------------------------
             # 5. Terminal status
+            # -------------------------------------------------
+
             active_info = [
-                f"{class_names.get(t.class_id, 'obj')}#{t.track_id}{' (RETRACK)' if t.reidentified else ''}"
+                f"{class_names.get(t.class_id, 'obj')}"
+                f"#{t.track_id}"
+                f"{' (RETRACK)' if t.reidentified else ''}"
                 for t in tracks
             ]
+
             print(
-                f"[Frame {frame_count:04d}] {fps_instant:4.1f} FPS | "
-                f"Dets: {len(detections):2d} | Active Tracks: {len(tracks):2d} | {', '.join(active_info)}"
+                f"[Frame {frame_count:04d}] "
+                f"{fps_instant:4.1f} FPS | "
+                f"Dets: {len(detections):2d} | "
+                f"Active Tracks: {len(tracks):2d} | "
+                f"{', '.join(active_info)}"
             )
 
-            # 6. Save or display
+            # -------------------------------------------------
+            # 6. Save annotated frame
+            # -------------------------------------------------
+
             if writer:
                 writer.write(frame)
 
-            if not args.no_display:
-                # Optionally downscale display if 4K
-                disp_frame = frame
-                if frame.shape[1] > 1920:
-                    disp_frame = cv2.resize(frame, (1920, int(frame.shape[0] * 1920 / frame.shape[1])))
+            # -------------------------------------------------
+            # 7. Display resizable preview
+            # -------------------------------------------------
 
-                cv2.imshow("ReTrack", disp_frame)
+            if not args.no_display:
+                cv2.imshow(
+                    window_name,
+                    frame,
+                )
+
+                # Press Q to quit.
                 if cv2.waitKey(1) & 0xFF == ord("q"):
                     break
 
     finally:
+        # -----------------------------------------------------
+        # Cleanup
+        # -----------------------------------------------------
+
         if writer:
             writer.release()
             print(f"Saved annotated video to {args.output}")
+
         cv2.destroyAllWindows()
 
+    # ---------------------------------------------------------
+    # Final statistics
+    # ---------------------------------------------------------
+
     total_time = time.time() - start_time
-    print(f"Processed {frame_count} frames in {total_time:.2f}s ({frame_count / max(1e-4, total_time):.1f} avg FPS)")
+
+    print(
+        f"Processed {frame_count} frames in "
+        f"{total_time:.2f}s "
+        f"({frame_count / max(1e-4, total_time):.1f} avg FPS)"
+    )
 
 
 if __name__ == "__main__":
